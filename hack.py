@@ -2,9 +2,13 @@ import os
 import shutil
 import time
 import requests
+import motd
 from pyIRsend import irsend
 import xml.etree.ElementTree as ET
 from tqdm import tqdm
+
+#mensagem hacker do dia
+motd.display_random_hacker_quote()
 
 # Pasta onde o script está localizado
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
