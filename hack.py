@@ -17,7 +17,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CODES_FOLDER = os.path.join(SCRIPT_DIR, 'codes')
 
 # URL do repositório "lirc-remotes"
-REMOTES_REPO_URL = 'https://github.com/probonopd/lirc-remotes/archive/refs/heads/master.zip'
+REMOTES_REPO_URL = 'https://github.com/probonopd/lirc-remotes'
 
 # Função para criar a pasta "codes" e mover para o diretório correto
 def setup_codes_folder():
