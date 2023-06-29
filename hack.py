@@ -1,11 +1,38 @@
 import os
+import shutil
 import time
 from pyIRsend import irsend
-import nmap
 import xml.etree.ElementTree as ET
 
+# Pasta onde o script está localizado
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Pasta que contém os arquivos XML com os códigos IR
-CODES_FOLDER = 'codes'
+CODES_FOLDER = os.path.join(SCRIPT_DIR, 'codes')
+
+# Função para criar a pasta "codes" e mover para o diretório correto
+def setup_codes_folder():
+    if not os.path.exists(CODES_FOLDER):
+        os.makedirs(CODES_FOLDER)
+        print("Pasta 'codes' criada.")
+
+    current_dir = os.getcwd()
+    if current_dir != SCRIPT_DIR:
+        codes_dir = os.path.join(current_dir, 'codes')
+        if os.path.exists(codes_dir):
+            print("Movendo a pasta 'codes' para o diretório correto...")
+            shutil.move(codes_dir, CODES_FOLDER)
+            print("Pasta 'codes' movida para o diretório correto.")
+
+# Função para listar as marcas disponíveis
+def list_brands():
+    brands = os.listdir(CODES_FOLDER)
+    if len(brands) > 0:
+        print("Marcas disponíveis:")
+        for brand in brands:
+            print(f"- {brand}")
+    else:
+        print("Não foram encontradas marcas de dispositivos.")
 
 # Função para carregar os nomes das teclas disponíveis para uma marca de dispositivo
 def load_device_commands(brand):
@@ -24,16 +51,6 @@ def load_device_commands(brand):
         return commands
     return None
 
-# Função para listar as marcas disponíveis
-def list_brands():
-    brands = os.listdir(CODES_FOLDER)
-    if len(brands) > 0:
-        print("Marcas disponíveis:")
-        for brand in brands:
-            print(f"- {brand}")
-    else:
-        print("Não foram encontradas marcas de dispositivos.")
-
 # Função para listar os comandos disponíveis para uma marca de dispositivo
 def list_commands(brand):
     commands = load_device_commands(brand)
@@ -43,6 +60,17 @@ def list_commands(brand):
             print(f"- {command}")
     else:
         print(f"Não foram encontrados comandos para a marca {brand}.")
+
+# Função para listar marcas de dispositivos com base na inicial
+def list_brands_by_initial(initial):
+    brands = os.listdir(CODES_FOLDER)
+    matching_brands = [brand for brand in brands if brand.lower().startswith(initial.lower())]
+    if len(matching_brands) > 0:
+        print(f"Marcas disponíveis com a inicial '{initial}':")
+        for brand in matching_brands:
+            print(f"- {brand}")
+    else:
+        print(f"Não foram encontradas marcas de dispositivos com a inicial '{initial}'.")
 
 # Função para controlar um dispositivo específico
 def control_device(brand):
@@ -76,13 +104,17 @@ def control_device(brand):
 
 # Função principal para interagir com o usuário
 def interact_with_user():
+    print("\n== Mi Remote ==\n")
+    print("Criado por Jeanpseven")
+    print("Objetivo: Controlar dispositivos por sinais de infravermelho")
+    
     while True:
-        print("\n== Mi Remote ==\n")
-        print("Opções disponíveis:")
+        print("\nOpções disponíveis:")
         print("1. Listar marcas de dispositivos")
         print("2. Listar comandos disponíveis para uma marca")
-        print("3. Controlar dispositivo")
-        print("4. Sair")
+        print("3. Listar marcas de dispositivos por inicial")
+        print("4. Controlar dispositivo")
+        print("5. Sair")
 
         option = input("Digite o número da opção desejada: ")
         if option == '1':
@@ -91,12 +123,21 @@ def interact_with_user():
             brand = input("Digite a marca do dispositivo: ")
             list_commands(brand)
         elif option == '3':
+            initial = input("Digite a inicial desejada: ")
+            list_brands_by_initial(initial)
+        elif option == '4':
             brand = input("Digite a marca do dispositivo: ")
             control_device(brand)
-        elif option == '4':
+        elif option == '5':
             break
         else:
             print("Opção inválida. Digite novamente.")
 
-# Executa a interação com o usuário
-interact_with_user()
+# Função principal para execução do script
+def main():
+    setup_codes_folder()
+    interact_with_user()
+
+# Execução do script
+if __name__ == '__main__':
+    main()
