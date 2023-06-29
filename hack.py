@@ -1,14 +1,19 @@
 import os
 import shutil
 import time
+import requests
 from pyIRsend import irsend
 import xml.etree.ElementTree as ET
+from tqdm import tqdm
 
 # Pasta onde o script está localizado
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Pasta que contém os arquivos XML com os códigos IR
 CODES_FOLDER = os.path.join(SCRIPT_DIR, 'codes')
+
+# URL do repositório "lirc-remotes"
+REMOTES_REPO_URL = 'https://github.com/probonopd/lirc-remotes/archive/refs/heads/master.zip'
 
 # Função para criar a pasta "codes" e mover para o diretório correto
 def setup_codes_folder():
@@ -23,6 +28,29 @@ def setup_codes_folder():
             print("Movendo a pasta 'codes' para o diretório correto...")
             shutil.move(codes_dir, CODES_FOLDER)
             print("Pasta 'codes' movida para o diretório correto.")
+
+# Função para baixar e extrair o repositório "lirc-remotes" para a pasta "codes"
+def download_lirc_remotes():
+    print("Baixando o repositório 'lirc-remotes'...")
+    response = requests.get(REMOTES_REPO_URL, stream=True)
+    total_size = int(response.headers.get('content-length', 0))
+    block_size = 1024
+    progress_bar = tqdm(total=total_size, unit='iB', unit_scale=True)
+    with open('lirc-remotes.zip', 'wb') as file:
+        for data in response.iter_content(block_size):
+            progress_bar.update(len(data))
+            file.write(data)
+    progress_bar.close()
+    print("Download concluído.")
+
+    print("Extraindo o repositório 'lirc-remotes'...")
+    shutil.unpack_archive('lirc-remotes.zip', CODES_FOLDER)
+    extracted_folder = os.path.join(CODES_FOLDER, 'lirc-remotes-master')
+    if os.path.exists(extracted_folder):
+        shutil.move(extracted_folder, CODES_FOLDER)
+    print("Extração concluída.")
+
+    os.remove('lirc-remotes.zip')
 
 # Função para listar as marcas disponíveis
 def list_brands():
@@ -61,7 +89,7 @@ def list_commands(brand):
     else:
         print(f"Não foram encontrados comandos para a marca {brand}.")
 
-# Função para listar marcas de dispositivos com base na inicial
+# Função para listar as marcas de dispositivos por inicial
 def list_brands_by_initial(initial):
     brands = os.listdir(CODES_FOLDER)
     matching_brands = [brand for brand in brands if brand.lower().startswith(initial.lower())]
@@ -136,8 +164,9 @@ def interact_with_user():
 # Função principal para execução do script
 def main():
     setup_codes_folder()
+    download_lirc_remotes()
     interact_with_user()
 
-# Execução do script
-if __name__ == '__main__':
+# Executa o script
+if __name__ == "__main__":
     main()
