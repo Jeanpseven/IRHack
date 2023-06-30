@@ -2,12 +2,12 @@ import os
 import shutil
 import time
 import requests
-import motd
-from pyIRsend import irsend
 import xml.etree.ElementTree as ET
 from tqdm import tqdm
+from pyIRsend import irsend
+import motd
 
-#mensagem hacker do dia
+# Mensagem hacker do dia
 motd.display_random_hacker_quote()
 
 # Pasta onde o script está localizado
@@ -134,6 +134,34 @@ def control_device(brand):
     else:
         print("Marca de dispositivo não encontrada.")
 
+# Função para buscar e executar comandos de desligar para todas as marcas
+def execute_power_off_commands():
+    brands = os.listdir(CODES_FOLDER)
+    power_off_commands = []
+
+    for brand in brands:
+        commands = load_device_commands(brand)
+        if commands is not None and "Power_Off" in commands:
+            power_off_commands.append((brand, "Power_Off"))
+
+    if len(power_off_commands) > 0:
+        print("Executando comandos de desligar para todas as marcas:")
+        for brand, command in power_off_commands:
+            print(f"Marca: {brand}, Comando: {command}")
+            brand_folder = os.path.join(CODES_FOLDER, brand)
+            file_name = command + ".xml"
+            file_path = os.path.join(brand_folder, file_name)
+            tree = ET.parse(file_path)
+            root = tree.getroot()
+            for code in root.findall('code'):
+                code_name = code.get('name')
+                code_ccf = code.find('ccf').text.strip()
+                irsend.send_ircode(code_ccf)
+                print(f"Enviado comando IR: {code_name}")
+                time.sleep(1)  # Aguarda 1 segundo entre os comandos
+    else:
+        print("Não foram encontrados comandos de desligar para nenhuma marca.")
+
 # Função principal para interagir com o usuário
 def interact_with_user():
     print("\n== Mi Remote ==\n")
@@ -146,7 +174,8 @@ def interact_with_user():
         print("2. Listar comandos disponíveis para uma marca")
         print("3. Listar marcas de dispositivos por inicial")
         print("4. Controlar dispositivo")
-        print("5. Sair")
+        print("5. Executar comandos de desligar para todas as marcas")
+        print("6. Sair")
 
         option = input("Digite o número da opção desejada: ")
         if option == '1':
@@ -161,6 +190,8 @@ def interact_with_user():
             brand = input("Digite a marca do dispositivo: ")
             control_device(brand)
         elif option == '5':
+            execute_power_off_commands()
+        elif option == '6':
             break
         else:
             print("Opção inválida. Digite novamente.")
