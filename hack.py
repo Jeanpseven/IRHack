@@ -4,11 +4,6 @@ import time
 import requests
 import xml.etree.ElementTree as ET
 from tqdm import tqdm
-from pyIRsend import irsend
-import motd
-
-# Mensagem hacker do dia
-motd.display_random_hacker_quote()
 
 # Pasta onde o script está localizado
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -48,7 +43,7 @@ def download_lirc_remotes():
     print("Download concluído.")
 
     print("Extraindo o repositório 'lirc-remotes'...")
-    shutil.unpack_archive('lirc-remotes.zip', CODES_FOLDER)
+    os.system('unzip lirc-remotes.zip -d codes')
     extracted_folder = os.path.join(CODES_FOLDER, 'lirc-remotes-master')
     if os.path.exists(extracted_folder):
         shutil.move(extracted_folder, CODES_FOLDER)
@@ -124,7 +119,7 @@ def control_device(brand):
                     for code in root.findall('code'):
                         code_name = code.get('name')
                         code_ccf = code.find('ccf').text.strip()
-                        irsend.send_ircode(code_ccf)
+                        send_ir_code(code_ccf)
                         print(f"Enviado comando IR: {code_name}")
                         time.sleep(1)  # Aguarda 1 segundo entre os comandos
                 else:
@@ -133,6 +128,10 @@ def control_device(brand):
             print(f"Não foram encontrados comandos para a marca {brand}.")
     else:
         print("Marca de dispositivo não encontrada.")
+
+# Função para enviar um comando IR através do Termux
+def send_ir_code(code):
+    os.system(f'termux-tts-speak "{code}"')  # Exemplo: comando para enviar o código IR através do Termux
 
 # Função para buscar e executar comandos de desligar para todas as marcas
 def execute_power_off_commands():
@@ -156,7 +155,7 @@ def execute_power_off_commands():
             for code in root.findall('code'):
                 code_name = code.get('name')
                 code_ccf = code.find('ccf').text.strip()
-                irsend.send_ircode(code_ccf)
+                send_ir_code(code_ccf)
                 print(f"Enviado comando IR: {code_name}")
                 time.sleep(1)  # Aguarda 1 segundo entre os comandos
     else:
