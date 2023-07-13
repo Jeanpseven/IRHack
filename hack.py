@@ -4,6 +4,7 @@ import time
 import requests
 import xml.etree.ElementTree as ET
 from tqdm import tqdm
+import subprocess
 
 # Pasta onde o script está localizado
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -161,12 +162,37 @@ def execute_power_off_commands():
     else:
         print("Não foram encontrados comandos de desligar para nenhuma marca.")
 
+# Função para instalar as dependências necessárias
+def install_dependencies():
+    print("Instalando as dependências necessárias...")
+    subprocess.run(["pip", "install", "requests"])
+    subprocess.run(["pip", "install", "tqdm"])
+
+# Função para verificar se as dependências estão instaladas
+def check_dependencies():
+    try:
+        import requests
+        import tqdm
+    except ImportError as e:
+        print(f"Dependência não encontrada: {e.name}")
+        return False
+    return True
+
+# Função para baixar e configurar todas as dependências
+def setup_environment():
+    if not check_dependencies():
+        install_dependencies()
+        if not check_dependencies():
+            print("Erro ao instalar as dependências necessárias.")
+            return False
+    return True
+
 # Função principal para interagir com o usuário
 def interact_with_user():
     print("\n== Mi Remote ==\n")
     print("Criado por Jeanpseven")
     print("Objetivo: Controlar dispositivos por sinais de infravermelho")
-    
+
     while True:
         print("\nOpções disponíveis:")
         print("1. Listar marcas de dispositivos")
@@ -199,7 +225,8 @@ def interact_with_user():
 def main():
     setup_codes_folder()
     download_lirc_remotes()
-    interact_with_user()
+    if setup_environment():
+        interact_with_user()
 
 # Executa o script
 if __name__ == "__main__":
